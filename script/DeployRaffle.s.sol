@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-import {Script} from "forge-std/Script.sol";
+import {Script, console} from "forge-std/Script.sol";
 import {Raffle} from "src/Raffle.sol";
 import {HelperConfig} from "./HelperConfig.s.sol";
 import {CreateSubscription, FundSubscription, AddConsumer} from "./Interaction.s.sol";
@@ -15,15 +15,17 @@ contract DeployRaffle is Script {
 
     function deployContract() public returns (Raffle, HelperConfig) {
         HelperConfig helperConfig = new HelperConfig();
+        
 
         HelperConfig.NetworkConfig memory config = helperConfig.getConfig();
 
         if (config.subscriptionId == 0) {
             //get a new subscription
-            CreateSubscription createSubscription = new CreateSubscription();
+            CreateSubscription createSubscription = new CreateSubscription(); 
 
             (config.subscriptionId, config.vrfCoordinator) = createSubscription
                 .createSubscription(config.vrfCoordinator, config.account);
+            
 
             //fund the subscription
 
@@ -34,7 +36,10 @@ contract DeployRaffle is Script {
                 config.link,
                 config.account
             );
+
+            helperConfig.setConfig(block.chainid, config);
         }
+        
 
         vm.startBroadcast(config.account);
 
@@ -48,6 +53,7 @@ contract DeployRaffle is Script {
         );
 
         vm.stopBroadcast();
+     
 
         // add Consumer
         AddConsumer addConsumer = new AddConsumer();
@@ -57,6 +63,11 @@ contract DeployRaffle is Script {
             config.subscriptionId,
             config.account
         );
+
+      
+        console.log("Raffle deployed to: ", address(raffle));
+        console.log("Link : ", config.link);
+
         return (raffle, helperConfig);
     }
 }

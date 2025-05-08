@@ -10,8 +10,8 @@ contract CodeConstants {
     uint256 public LOCAL_CHAIN_ID = 31337;
 
     //Mock constants
-    uint96 public ANVIL_BASE_FEE = 0.25 ether;
-    uint96 public ANVIL_GAS_PRICE = 1e9;
+    uint96 public ANVIL_BASE_FEE = 0.1 ether;
+    uint96 public ANVIL_GAS_PRICE = 1e1;
     int256 public ANVIL_WEI_PER_UNIT_LINK = 1e18;
 }
 
@@ -26,11 +26,11 @@ contract HelperConfig is Script, CodeConstants {
         address link;
         address account;
     }
-    mapping(uint256 chainId => NetworkConfig) public NetworkConfigs;
+    mapping(uint256 chainId => NetworkConfig) public networkConfigs;
     NetworkConfig public localNetworkConfig;
 
     constructor() {
-        NetworkConfigs[SEPOLIA_CHAIN_ID] = getSepoliaNetworkConfig();
+        networkConfigs[SEPOLIA_CHAIN_ID] = getSepoliaNetworkConfig();
     }
 
     function getSepoliaNetworkConfig()
@@ -55,7 +55,7 @@ contract HelperConfig is Script, CodeConstants {
         uint256 chainID
     ) public returns (NetworkConfig memory) {
         // console.log("chain Id : ", chainID);
-        NetworkConfig memory config = NetworkConfigs[chainID];
+        NetworkConfig memory config = networkConfigs[chainID];
         // console.log("config.vrf: ", config.vrfCoordinator);
         // console.log("config.link: ", config.link);
         // console.log("config.subId: ", config.subscriptionId);
@@ -72,6 +72,13 @@ contract HelperConfig is Script, CodeConstants {
     function getConfig() public returns (NetworkConfig memory) {
         return getConfigByChainID(block.chainid);
     }
+    
+    function setConfig(
+        uint256 chainId,
+        NetworkConfig memory networkConfig
+    ) public {
+        networkConfigs[chainId] = networkConfig;
+    }
 
     function getOrCreateAnvilEthConfig() public returns (NetworkConfig memory) {
         if (localNetworkConfig.vrfCoordinator != address(0)) {
@@ -83,7 +90,9 @@ contract HelperConfig is Script, CodeConstants {
                 ANVIL_GAS_PRICE,
                 ANVIL_WEI_PER_UNIT_LINK
             );
+            
             LinkToken link = new LinkToken();
+           
             vm.stopBroadcast();
             localNetworkConfig = NetworkConfig(
                 0.01 ether,

@@ -11,10 +11,13 @@ import {Raffle} from "src/Raffle.sol";
 contract CreateSubscription is Script {
     function createSubscriptionUsingConfig() public returns (uint256, address) {
         HelperConfig helperConfig = new HelperConfig();
+        
         address vrfCoordinator = helperConfig.getConfig().vrfCoordinator;
         address account = helperConfig.getConfig().account;
 
         (uint256 subId, ) = createSubscription(vrfCoordinator, account);
+
+        console.log("Subscription in the create subs: ", subId);
 
         return (subId, vrfCoordinator);
     }
@@ -28,6 +31,7 @@ contract CreateSubscription is Script {
         uint256 subId = VRFCoordinatorV2_5Mock(vrfCoordinator)
             .createSubscription();
         vm.stopBroadcast();
+        console.log("Subscirption in create after mock call : ", subId);
 
         console.log("Subscription: ", subId);
         return (subId, vrfCoordinator);

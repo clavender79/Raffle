@@ -9,6 +9,7 @@ import {DeployRaffle} from "script/DeployRaffle.s.sol";
 import {Vm} from "forge-std/Vm.sol";
 import {VRFCoordinatorV2_5Mock} from "@chainlink/contracts/src/v0.8/vrf/mocks/VRFCoordinatorV2_5Mock.sol";
 import {console} from "forge-std/Script.sol";
+import {FundSubscription, CreateSubscription} from "script/Interaction.s.sol";
 
 contract RaffleTest is Test, CodeConstants {
     Raffle public raffle;
@@ -22,7 +23,11 @@ contract RaffleTest is Test, CodeConstants {
 
     //Events
     event RaffleEntered(address indexed player);
-    event WinnerPicked(address indexed player);
+    event WinnerPicked(
+        address indexed player,
+        uint256 amount,
+        uint256 timestamp
+    );
 
     address public PLAYER = makeAddr("PLAYER");
     uint256 public INITIAL_BALANCE = 10 ether;
@@ -73,6 +78,8 @@ contract RaffleTest is Test, CodeConstants {
         //assert
         raffle.enterRaffle{value: entranceFee}();
     }
+
+    
 
     function testDontAllowPlayersToEnterWhileRaffleIsCalculating() external {
         //Arrange
@@ -141,7 +148,6 @@ contract RaffleTest is Test, CodeConstants {
         raffle.enterRaffle{value: entranceFee}();
         balance += entranceFee;
         noOfPlayers = 1;
-       
 
         //Assert
         vm.expectRevert(
@@ -192,7 +198,7 @@ contract RaffleTest is Test, CodeConstants {
 
     function testFulfillRandomWordsWorkOnlyAfterPerformUpkeep(
         uint256 randomRequestId
-    ) external  skipFork playerEnteredRaffle  {
+    ) external skipFork playerEnteredRaffle {
         vm.expectRevert(VRFCoordinatorV2_5Mock.InvalidRequest.selector);
         VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(
             randomRequestId,
@@ -202,8 +208,8 @@ contract RaffleTest is Test, CodeConstants {
 
     function testFulfillRandomWordsPicksAWinnerResetsAndSendsMoney()
         external
-        
-       skipFork playerEnteredRaffle 
+        skipFork
+        playerEnteredRaffle
     {
         uint256 morePlayersToEnter = 3;
         address expectedWinner = address(1);
@@ -223,6 +229,13 @@ contract RaffleTest is Test, CodeConstants {
         raffle.performUpkeep("");
         Vm.Log[] memory entries = vm.getRecordedLogs();
         bytes32 requestId = entries[1].topics[1];
+
+        //check for recent winner picket emitted
+        vm.expectEmit(true, false, false, true);
+        emit WinnerPicked(expectedWinner,  entranceFee * (morePlayersToEnter + 1), block.timestamp);
+
+
+
         VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(
             uint256(requestId),
             address(raffle)
@@ -244,5 +257,19 @@ contract RaffleTest is Test, CodeConstants {
         assert(raffle.getLastTimeStamp() > lastTimeStamp);
 
         assert(uint256(raffle.getRaffleState()) == 0);
+    }
+
+    // Subscription Tests //
+    function testSubscriptionWorks() external {
+      
+        FundSubscription fundSubscription = new FundSubscription();
+       
+
+        fundSubscription.fundSubscription(
+            vrfCoordinator,
+            subscriptionId,
+            helperConfig.getConfig().link,
+            helperConfig.getConfig().account
+        );
     }
 }
