@@ -23,11 +23,7 @@ contract RaffleTest is Test, CodeConstants {
 
     //Events
     event RaffleEntered(address indexed player);
-    event WinnerPicked(
-        address indexed player,
-        uint256 amount,
-        uint256 timestamp
-    );
+    event WinnerPicked(address indexed player, uint256 amount, uint256 timestamp);
 
     address public PLAYER = makeAddr("PLAYER");
     uint256 public INITIAL_BALANCE = 10 ether;
@@ -79,8 +75,6 @@ contract RaffleTest is Test, CodeConstants {
         raffle.enterRaffle{value: entranceFee}();
     }
 
-    
-
     function testDontAllowPlayersToEnterWhileRaffleIsCalculating() external {
         //Arrange
         vm.prank(PLAYER);
@@ -104,7 +98,7 @@ contract RaffleTest is Test, CodeConstants {
         vm.roll(block.number + 1);
 
         //Act
-        (bool upkeepNeeded, ) = raffle.checkUpkeep("");
+        (bool upkeepNeeded,) = raffle.checkUpkeep("");
 
         //Assert
         assert(!upkeepNeeded);
@@ -119,7 +113,7 @@ contract RaffleTest is Test, CodeConstants {
         raffle.performUpkeep("");
 
         //Act
-        (bool upkeepNeeded, ) = raffle.checkUpkeep("");
+        (bool upkeepNeeded,) = raffle.checkUpkeep("");
 
         //Assert
         assert(!upkeepNeeded);
@@ -151,12 +145,7 @@ contract RaffleTest is Test, CodeConstants {
 
         //Assert
         vm.expectRevert(
-            abi.encodeWithSelector(
-                Raffle.Raffle_UpkeepNotNeeded.selector,
-                balance,
-                noOfPlayers,
-                uint256(raffleState)
-            )
+            abi.encodeWithSelector(Raffle.Raffle_UpkeepNotNeeded.selector, balance, noOfPlayers, uint256(raffleState))
         );
         raffle.performUpkeep("");
     }
@@ -177,10 +166,7 @@ contract RaffleTest is Test, CodeConstants {
         _;
     }
 
-    function testPerformUpkeepEmitsRequestIdAndUpdateRaffleState()
-        external
-        playerEnteredRaffle
-    {
+    function testPerformUpkeepEmitsRequestIdAndUpdateRaffleState() external playerEnteredRaffle {
         //Act
         vm.recordLogs();
         raffle.performUpkeep("");
@@ -196,21 +182,16 @@ contract RaffleTest is Test, CodeConstants {
 
     // REQUEST RANDOM WORDS //
 
-    function testFulfillRandomWordsWorkOnlyAfterPerformUpkeep(
-        uint256 randomRequestId
-    ) external skipFork playerEnteredRaffle {
-        vm.expectRevert(VRFCoordinatorV2_5Mock.InvalidRequest.selector);
-        VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(
-            randomRequestId,
-            address(raffle)
-        );
-    }
-
-    function testFulfillRandomWordsPicksAWinnerResetsAndSendsMoney()
+    function testFulfillRandomWordsWorkOnlyAfterPerformUpkeep(uint256 randomRequestId)
         external
         skipFork
         playerEnteredRaffle
     {
+        vm.expectRevert(VRFCoordinatorV2_5Mock.InvalidRequest.selector);
+        VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(randomRequestId, address(raffle));
+    }
+
+    function testFulfillRandomWordsPicksAWinnerResetsAndSendsMoney() external skipFork playerEnteredRaffle {
         uint256 morePlayersToEnter = 3;
         address expectedWinner = address(1);
         // console.log("Expected Winner : ", expectedWinner);
@@ -232,14 +213,9 @@ contract RaffleTest is Test, CodeConstants {
 
         //check for recent winner picket emitted
         vm.expectEmit(true, false, false, true);
-        emit WinnerPicked(expectedWinner,  entranceFee * (morePlayersToEnter + 1), block.timestamp);
+        emit WinnerPicked(expectedWinner, entranceFee * (morePlayersToEnter + 1), block.timestamp);
 
-
-
-        VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(
-            uint256(requestId),
-            address(raffle)
-        );
+        VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(uint256(requestId), address(raffle));
 
         //assert
         address recentWinner = raffle.getRecentWinner();
@@ -261,15 +237,10 @@ contract RaffleTest is Test, CodeConstants {
 
     // Subscription Tests //
     function testSubscriptionWorks() external {
-      
         FundSubscription fundSubscription = new FundSubscription();
-       
 
         fundSubscription.fundSubscription(
-            vrfCoordinator,
-            subscriptionId,
-            helperConfig.getConfig().link,
-            helperConfig.getConfig().account
+            vrfCoordinator, subscriptionId, helperConfig.getConfig().link, helperConfig.getConfig().account
         );
     }
 }

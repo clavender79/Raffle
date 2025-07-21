@@ -15,31 +15,23 @@ contract DeployRaffle is Script {
 
     function deployContract() public returns (Raffle, HelperConfig) {
         HelperConfig helperConfig = new HelperConfig();
-        
 
         HelperConfig.NetworkConfig memory config = helperConfig.getConfig();
 
         if (config.subscriptionId == 0) {
             //get a new subscription
-            CreateSubscription createSubscription = new CreateSubscription(); 
+            CreateSubscription createSubscription = new CreateSubscription();
 
-            (config.subscriptionId, config.vrfCoordinator) = createSubscription
-                .createSubscription(config.vrfCoordinator, config.account);
-            
+            (config.subscriptionId, config.vrfCoordinator) =
+                createSubscription.createSubscription(config.vrfCoordinator, config.account);
 
             //fund the subscription
 
             FundSubscription fundSubscription = new FundSubscription();
-            fundSubscription.fundSubscription(
-                config.vrfCoordinator,
-                config.subscriptionId,
-                config.link,
-                config.account
-            );
+            fundSubscription.fundSubscription(config.vrfCoordinator, config.subscriptionId, config.link, config.account);
 
             helperConfig.setConfig(block.chainid, config);
         }
-        
 
         vm.startBroadcast(config.account);
 
@@ -53,18 +45,11 @@ contract DeployRaffle is Script {
         );
 
         vm.stopBroadcast();
-     
 
         // add Consumer
         AddConsumer addConsumer = new AddConsumer();
-        addConsumer.addConsumer(
-            address(raffle),
-            config.vrfCoordinator,
-            config.subscriptionId,
-            config.account
-        );
+        addConsumer.addConsumer(address(raffle), config.vrfCoordinator, config.subscriptionId, config.account);
 
-      
         console.log("Raffle deployed to: ", address(raffle));
         console.log("Link : ", config.link);
 

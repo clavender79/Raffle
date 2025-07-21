@@ -26,6 +26,7 @@ contract HelperConfig is Script, CodeConstants {
         address link;
         address account;
     }
+
     mapping(uint256 chainId => NetworkConfig) public networkConfigs;
     NetworkConfig public localNetworkConfig;
 
@@ -33,27 +34,20 @@ contract HelperConfig is Script, CodeConstants {
         networkConfigs[SEPOLIA_CHAIN_ID] = getSepoliaNetworkConfig();
     }
 
-    function getSepoliaNetworkConfig()
-        public
-        pure
-        returns (NetworkConfig memory)
-    {
-        return
-            NetworkConfig(
-                0.005 ether,
-                30,
-                0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B,
-                87519156596915915835777957811913627480183150574359833930844300774214624913740,
-                0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
-                500000,
-                0x779877A7B0D9E8603169DdbD7836e478b4624789,
-                0x8943F7348E2559C6E69eeCb0dA932424C3E6dC66 //burner wallet address
-            );
+    function getSepoliaNetworkConfig() public pure returns (NetworkConfig memory) {
+        return NetworkConfig(
+            0.005 ether,
+            30,
+            0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B,
+            87519156596915915835777957811913627480183150574359833930844300774214624913740,
+            0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
+            500000,
+            0x779877A7B0D9E8603169DdbD7836e478b4624789,
+            0x8943F7348E2559C6E69eeCb0dA932424C3E6dC66 //burner wallet address
+        );
     }
 
-    function getConfigByChainID(
-        uint256 chainID
-    ) public returns (NetworkConfig memory) {
+    function getConfigByChainID(uint256 chainID) public returns (NetworkConfig memory) {
         // console.log("chain Id : ", chainID);
         NetworkConfig memory config = networkConfigs[chainID];
         // console.log("config.vrf: ", config.vrfCoordinator);
@@ -72,11 +66,8 @@ contract HelperConfig is Script, CodeConstants {
     function getConfig() public returns (NetworkConfig memory) {
         return getConfigByChainID(block.chainid);
     }
-    
-    function setConfig(
-        uint256 chainId,
-        NetworkConfig memory networkConfig
-    ) public {
+
+    function setConfig(uint256 chainId, NetworkConfig memory networkConfig) public {
         networkConfigs[chainId] = networkConfig;
     }
 
@@ -85,14 +76,11 @@ contract HelperConfig is Script, CodeConstants {
             return localNetworkConfig;
         } else {
             vm.startBroadcast();
-            VRFCoordinatorV2_5Mock vrfCoordinator = new VRFCoordinatorV2_5Mock(
-                ANVIL_BASE_FEE,
-                ANVIL_GAS_PRICE,
-                ANVIL_WEI_PER_UNIT_LINK
-            );
-            
+            VRFCoordinatorV2_5Mock vrfCoordinator =
+                new VRFCoordinatorV2_5Mock(ANVIL_BASE_FEE, ANVIL_GAS_PRICE, ANVIL_WEI_PER_UNIT_LINK);
+
             LinkToken link = new LinkToken();
-           
+
             vm.stopBroadcast();
             localNetworkConfig = NetworkConfig(
                 0.01 ether,
