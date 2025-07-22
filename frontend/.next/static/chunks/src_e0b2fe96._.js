@@ -506,11 +506,14 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$contractData$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/contractData.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$wagmi$2f$dist$2f$esm$2f$hooks$2f$useAccount$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/wagmi/dist/esm/hooks/useAccount.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$wagmi$2f$dist$2f$esm$2f$hooks$2f$useReadContract$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/wagmi/dist/esm/hooks/useReadContract.js [app-client] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$wagmi$2f$dist$2f$esm$2f$hooks$2f$useWriteContract$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/wagmi/dist/esm/hooks/useWriteContract.js [app-client] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$wagmi$2f$dist$2f$esm$2f$hooks$2f$useWaitForTransactionReceipt$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/wagmi/dist/esm/hooks/useWaitForTransactionReceipt.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$viem$2f$_esm$2f$actions$2f$wallet$2f$writeContract$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/viem/_esm/actions/wallet/writeContract.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$viem$2f$_esm$2f$actions$2f$public$2f$waitForTransactionReceipt$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/viem/_esm/actions/public/waitForTransactionReceipt.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$wagmiConfig$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/wagmiConfig.js [app-client] (ecmascript)");
 ;
 var _s = __turbopack_context__.k.signature();
 "use client";
+;
+;
 ;
 ;
 ;
@@ -525,11 +528,6 @@ const AdminPanel = ()=>{
             setIsMounted(true);
         }
     }["AdminPanel.useEffect"], []);
-    const { writeContract, data: hash } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$wagmi$2f$dist$2f$esm$2f$hooks$2f$useWriteContract$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useWriteContract"])();
-    const { isLoading: isConfirming, isSuccess: isConfirmed, data: receipt } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$wagmi$2f$dist$2f$esm$2f$hooks$2f$useWaitForTransactionReceipt$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useWaitForTransactionReceipt"])({
-        hash,
-        enabled: !!hash
-    });
     const { data: owner, isLoading, error } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$wagmi$2f$dist$2f$esm$2f$hooks$2f$useReadContract$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useReadContract"])({
         address: __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$contractData$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["contractAddress"],
         abi: __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$contractData$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["abi"],
@@ -586,13 +584,17 @@ const AdminPanel = ()=>{
                 return;
             }
             console.log("performUpkeep...");
-            writeContract({
+            const txHash = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$viem$2f$_esm$2f$actions$2f$wallet$2f$writeContract$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["writeContract"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$wagmiConfig$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["wagmiConfig"], {
                 address: __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$contractData$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["contractAddress"],
                 abi: __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$contractData$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["abi"],
                 functionName: 'performUpkeep',
                 args: [
                     "0x"
                 ]
+            });
+            console.log('Transaction sent, waiting for confirmation...');
+            await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$viem$2f$_esm$2f$actions$2f$public$2f$waitForTransactionReceipt$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["waitForTransactionReceipt"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$wagmiConfig$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["wagmiConfig"], {
+                hash: txHash
             });
             console.log("Winner Selected");
             const recentWinner = await recentWinnerRefetch();
@@ -617,7 +619,7 @@ const AdminPanel = ()=>{
             children: "Loading..."
         }, void 0, false, {
             fileName: "[project]/src/components/AdminPanel.jsx",
-            lineNumber: 141,
+            lineNumber: 133,
             columnNumber: 12
         }, this);
     }
@@ -629,7 +631,7 @@ const AdminPanel = ()=>{
                     children: "Admin Panel"
                 }, void 0, false, {
                     fileName: "[project]/src/components/AdminPanel.jsx",
-                    lineNumber: 148,
+                    lineNumber: 140,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -637,13 +639,13 @@ const AdminPanel = ()=>{
                     children: "Please connect your wallet to access the admin panel."
                 }, void 0, false, {
                     fileName: "[project]/src/components/AdminPanel.jsx",
-                    lineNumber: 149,
+                    lineNumber: 141,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/AdminPanel.jsx",
-            lineNumber: 147,
+            lineNumber: 139,
             columnNumber: 7
         }, this);
     }
@@ -655,7 +657,7 @@ const AdminPanel = ()=>{
                     children: "Admin Panel"
                 }, void 0, false, {
                     fileName: "[project]/src/components/AdminPanel.jsx",
-                    lineNumber: 157,
+                    lineNumber: 149,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -663,13 +665,13 @@ const AdminPanel = ()=>{
                     children: "Only the contract owner can access the admin panel."
                 }, void 0, false, {
                     fileName: "[project]/src/components/AdminPanel.jsx",
-                    lineNumber: 158,
+                    lineNumber: 150,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/AdminPanel.jsx",
-            lineNumber: 156,
+            lineNumber: 148,
             columnNumber: 7
         }, this);
     }
@@ -680,7 +682,7 @@ const AdminPanel = ()=>{
                 children: "Admin Panel"
             }, void 0, false, {
                 fileName: "[project]/src/components/AdminPanel.jsx",
-                lineNumber: 165,
+                lineNumber: 157,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -692,7 +694,7 @@ const AdminPanel = ()=>{
                             children: "Contract Actions"
                         }, void 0, false, {
                             fileName: "[project]/src/components/AdminPanel.jsx",
-                            lineNumber: 169,
+                            lineNumber: 161,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -702,32 +704,30 @@ const AdminPanel = ()=>{
                             children: "Pick Winner"
                         }, void 0, false, {
                             fileName: "[project]/src/components/AdminPanel.jsx",
-                            lineNumber: 170,
+                            lineNumber: 162,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/AdminPanel.jsx",
-                    lineNumber: 168,
+                    lineNumber: 160,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/components/AdminPanel.jsx",
-                lineNumber: 167,
+                lineNumber: 159,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/AdminPanel.jsx",
-        lineNumber: 164,
+        lineNumber: 156,
         columnNumber: 5
     }, this);
 };
-_s(AdminPanel, "4KGwgYO5YtkC3tZryVHKPp+xw1o=", false, function() {
+_s(AdminPanel, "YwPAyUr1mmipKZONUyOF//aqIrI=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$wagmi$2f$dist$2f$esm$2f$hooks$2f$useAccount$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useAccount"],
-        __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$wagmi$2f$dist$2f$esm$2f$hooks$2f$useWriteContract$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useWriteContract"],
-        __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$wagmi$2f$dist$2f$esm$2f$hooks$2f$useWaitForTransactionReceipt$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useWaitForTransactionReceipt"],
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$wagmi$2f$dist$2f$esm$2f$hooks$2f$useReadContract$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useReadContract"],
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$wagmi$2f$dist$2f$esm$2f$hooks$2f$useReadContract$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useReadContract"],
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$wagmi$2f$dist$2f$esm$2f$hooks$2f$useReadContract$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useReadContract"]

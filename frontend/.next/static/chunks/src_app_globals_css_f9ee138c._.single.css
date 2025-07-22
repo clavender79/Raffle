@@ -197,24 +197,8 @@
 @layer components;
 
 @layer utilities {
-  .invisible {
-    visibility: hidden;
-  }
-
-  .absolute {
-    position: absolute;
-  }
-
   .fixed {
     position: fixed;
-  }
-
-  .top-8 {
-    top: calc(var(--spacing) * 8);
-  }
-
-  .right-6 {
-    right: calc(var(--spacing) * 6);
   }
 
   .rounded {

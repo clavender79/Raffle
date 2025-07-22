@@ -39,7 +39,7 @@ contract CreateSubscription is Script {
 }
 
 contract FundSubscription is Script, CodeConstants {
-    uint256 FUND_AMOUNT = 1 ether; //ether is just for e18 decimals so for us it is 3 link as it also has 18 decimals
+    uint256 FUND_AMOUNT = 1 ether; //ether is just for e18 decimals so for us it is 1 link as it also has 18 decimals
 
     function fundSubscriptionUsingConfig() public {
         HelperConfig helperConfig = new HelperConfig();

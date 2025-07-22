@@ -11,9 +11,12 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     error Raffle_SendMoreToEnterRaffle();
     error Raffle_RaffleNotOpen();
     error Raffle_UpkeepNotNeeded(uint256 balance, uint256 noOfPlayers, uint256 raffleState);
+    error Raffle_NotOwner();
+    error Raffle_RaffleNotClosed();
 
     enum RaffleState {
         OPEN,
+        CLOSED,
         CALCULATING_WINNER
     }
 
@@ -35,7 +38,6 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     //Events
     event RaffleEntered(address indexed player);
     event WinnerPicked(address indexed player, uint256 amount, uint256 timestamp);
-
     event RequestedRaffleWinner(uint256 indexed requestId);
 
     constructor(
@@ -83,8 +85,9 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
 
         //tried to add this modification
 
-        if (timePassed && !raffleOpened && !hasBalance && !hasPlayers) {
-            s_raffleState = RaffleState.OPEN;
+        if (timePassed && !hasPlayers) {
+            s_raffleState = RaffleState.CLOSED; //have to close
+            s_recentWinner = payable(address(0));
             s_players = new address payable[](0);
             s_lastTimeStamp = block.timestamp;
         }
@@ -120,18 +123,38 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
         uint256 indexOfWinner = randomWords[0] % s_players.length;
         s_recentWinner = payable(s_players[indexOfWinner]);
 
-        s_raffleState = RaffleState.OPEN;
+        s_raffleState = RaffleState.CLOSED; //CLOSED UNTIL A NEW RAFFLE IS STARTED
         s_players = new address payable[](0);
         s_lastTimeStamp = block.timestamp;
         //storing the total balance
         uint256 totalBalance = address(this).balance;
+        //Owner Share
+        uint256 ownerShare = (totalBalance * 10) / 100; //10% for the owner
+
+        //Transfering Owner Share
+        (bool ownerSuccess,) = i_owner.call{value: ownerShare}("");
+        if (!ownerSuccess) {
+            revert Raffle_TransferFailed();
+        }
+
+        //Transfering the rest to the winner
+        totalBalance -= ownerShare; //remaining balance after owner's share
 
         (bool success,) = s_recentWinner.call{value: totalBalance}("");
 
         if (!success) {
             revert Raffle_TransferFailed();
         }
+
         emit WinnerPicked(s_recentWinner, totalBalance, s_lastTimeStamp);
+    }
+
+    function openRaffle() external onlyOwner {
+        if (s_raffleState == RaffleState.OPEN || s_raffleState == RaffleState.CALCULATING_WINNER) {
+            revert Raffle_RaffleNotClosed();
+        }
+        s_raffleState = RaffleState.OPEN;
+        s_lastTimeStamp = block.timestamp;
     }
 
     function getRaffleState() external view returns (RaffleState) {
@@ -176,6 +199,16 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
             s_lastTimeStamp,
             uint256(s_raffleState)
         );
+    }
+
+    function getPlayersTotalTickets(address player) external view returns (uint256) {
+        uint256 totalTickets = 0;
+        for (uint256 i = 0; i < s_players.length; i++) {
+            if (s_players[i] == player) {
+                totalTickets++;
+            }
+        }
+        return totalTickets;
     }
 
     function getOwner() external view returns (address) {

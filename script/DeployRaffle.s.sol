@@ -10,10 +10,10 @@ contract DeployRaffle is Script {
     constructor() {}
 
     function run() public {
-        deployContract();
+        deployContract(0.05 ether, 30 seconds); // for testing purposes
     }
 
-    function deployContract() public returns (Raffle, HelperConfig) {
+    function deployContract(uint256 entranceFee, uint256 timeInterval) public returns (Raffle, HelperConfig) {
         HelperConfig helperConfig = new HelperConfig();
 
         HelperConfig.NetworkConfig memory config = helperConfig.getConfig();
@@ -36,8 +36,8 @@ contract DeployRaffle is Script {
         vm.startBroadcast(config.account);
 
         Raffle raffle = new Raffle(
-            config.entranceFee,
-            config.timeInterval,
+            entranceFee,
+            timeInterval,
             config.vrfCoordinator,
             config.subscriptionId,
             config.gasLane,

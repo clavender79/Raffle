@@ -17,8 +17,6 @@ contract CodeConstants {
 
 contract HelperConfig is Script, CodeConstants {
     struct NetworkConfig {
-        uint256 entranceFee;
-        uint256 timeInterval;
         address vrfCoordinator;
         uint256 subscriptionId;
         bytes32 gasLane;
@@ -36,8 +34,6 @@ contract HelperConfig is Script, CodeConstants {
 
     function getSepoliaNetworkConfig() public pure returns (NetworkConfig memory) {
         return NetworkConfig(
-            0.005 ether,
-            30,
             0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B,
             87519156596915915835777957811913627480183150574359833930844300774214624913740,
             0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
@@ -83,8 +79,6 @@ contract HelperConfig is Script, CodeConstants {
 
             vm.stopBroadcast();
             localNetworkConfig = NetworkConfig(
-                0.01 ether,
-                30,
                 address(vrfCoordinator),
                 0,
                 0,
