@@ -1,51 +1,53 @@
 "use client";
 
-import { useState } from "react";
-import { DollarSign } from "lucide-react";
+import { useAccount } from "wagmi";
+import { toast } from "sonner";
 
+import { useState } from "react";
 const colorClasses = {
   blue: {
-    header: "bg-[#5BBBFF]",
-    body: "bg-[#1FA2FF]",
+    header: "bg-gradient-to-b from-[#1E40AF] to-[#3B82F6]", 
+    body: "bg-gradient-to-b from-[#1E3A8A] to-[#2563EB]", 
     buyButtonGradient: {
-      background: "linear-gradient(91deg, #FFF -43.8%, #73C5FF 22.19%, #0067A2 99.18%)"
+      background: "linear-gradient(91deg, #1E3A8A -43.8%, #2563EB 22.19%, #1D4ED8 99.18%)"
     }
   },
   orange: {
-    header: "bg-[#FFAD56]",
-    body: "bg-[#F47E00]",
+    header: "bg-gradient-to-b from-[#B45309] to-[#F59E0B]", 
+    body: "bg-gradient-to-b from-[#78350F] to-[#D97706]", 
     buyButtonGradient: {
-      background: "linear-gradient(91deg, #FFF -43.8%, #F47E00 22.19%, #AF5F08 99.18%)"
+      background: "linear-gradient(91deg, #78350F -43.8%, #D97706 22.19%, #B45309 99.18%)"
     }
   },
   green: {
-    header: "bg-[#32BF45]",
-    body: "bg-[#229131]",
+    header: "bg-gradient-to-b from-[#065F46] to-[#10B981]", 
+    body: "bg-gradient-to-b from-[#064E3B] to-[#059669]", 
     buyButtonGradient: {
-      background: "linear-gradient(91deg, #FFF -43.8%, #229131 22.19%, #00580C 99.18%)"
+      background: "linear-gradient(91deg, #064E3B -43.8%, #059669 22.19%, #047857 99.18%)"
     }
   },
   red: {
-    header: "bg-[#FF5858]",
-    body: "bg-[#FF5858]",
+    header: "bg-gradient-to-b from-[#7F1D1D] to-[#EF4444]", 
+    body: "bg-gradient-to-b from-[#991B1B] to-[#DC2626]", 
     buyButtonGradient: {
-      background: "linear-gradient(91deg, #FFF -43.8%, #E53030 22.19%, #7C0000 99.18%)"
+      background: "linear-gradient(91deg, #7F1D1D -43.8%, #DC2626 22.19%, #B91C1C 99.18%)"
     }
   },
   purple: {
-    header: "bg-[#908CFF]",
-    body: "bg-[#908CFF]",
+    header: "bg-gradient-to-b from-[#4C1D95] to-[#8B5CF6]", 
+    body: "bg-gradient-to-b from-[#5B21B6] to-[#7C3AED]", 
     buyButtonGradient: {
-      background: "linear-gradient(91deg, #FFF -43.8%, #6E69FF 22.19%, #231BFF 99.18%)"
+      background: "linear-gradient(91deg, #4C1D95 -43.8%, #7C3AED 22.19%, #5B21B6 99.18%)"
     }
   },
   pink: {
-    header: "bg-[#FF51F3]",
-    body: "bg-[#FF51F3]",
+    header: "bg-gradient-to-b from-[#831843] to-[#EC4899]", 
+    body: "bg-gradient-to-b from-[#9D174D] to-[#DB2777]", 
     buyButtonGradient: {
-      background: "linear-gradient(91deg, #FFF -43.8%, #F800E8 22.19%, #73006C 99.18%)"
+      background: "linear-gradient(91deg, #831843 -43.8%, #DB2777 22.19%, #9D174D 99.18%)"
     }
-  },
+  }
+,
   StyleButton: {
     boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.25)",
     borderRadius: "50px"
@@ -61,9 +63,16 @@ const colorClasses = {
 
 
 export default function LotteryCard({ lottery, onClick, handleOpenHistoryPopup, handleOpenBuyPopup }) {
+
+  const { isConnected } = useAccount();
+  if(!isConnected){
+     window.scrollTo({ top: 0, behavior: "smooth" });
+       handleOpenBuyPopup = () => toast.error("Please connect your wallet to buy tickets.");
+    }
+  
   const [randomImage] = useState(() => {
     const keys = Object.keys(colorClasses.Images);
-    const randomKey = keys[Math.floor(Math.random() * keys.length)];
+    const randomKey = keys[1];
     return colorClasses.Images[randomKey];
   });
 
@@ -83,7 +92,7 @@ export default function LotteryCard({ lottery, onClick, handleOpenHistoryPopup, 
           <div className=" flex rounded-full px-3 py-1 text-md gap-1 items-center"><img src="/lotteryCards/Stats/prizePot.svg" alt="Lottery Id" className="h-5" /> Prize Pot</div>
 
           <div className="text-right px-3 py-1">
-            <p className="text-6xl font-semibold ">{lottery.prizePot}<sub className="text-sm align-sub relative bottom-3 right-2">ETH</sub></p>
+            <p className="text-6xl font-semibold ">{lottery.prizePot}<sub className="text-sm align-sub relative bottom-3 right-0">ETH</sub></p>
           </div>
 
         </div>
@@ -136,21 +145,22 @@ export default function LotteryCard({ lottery, onClick, handleOpenHistoryPopup, 
           <span className="opacity-80 flex gap-1"><img src="/lotteryCards/Stats/timer.svg" alt="time remaining" className="h-5" />  Time Remaining</span>
           <span className="font-semibold">{lottery.timeRemaining}</span>
         </div>
-        <div className="flex justify-between items-center">
 
-          <span className="opacity-80 flex gap-1"><img src="/lotteryCards/Stats/trophy.svg" alt="Last winner" className="h-5" />  Last winner</span>
-          <span className="font-semibold">{lottery.lastWinner}</span>
-        </div>
+        
+
       </div>
 
       {/* Buy Tickets button */}
-      <div className="flex justify-center ">
+      <div className="flex justify-center "
+      title={!lottery.open ? "Raffle is closed" : ""}>
         <button
-          className={`w-14/15 my-4 px-10 py-3 text-black rounded-full ${buyButtonGradient}`}
+          className={`w-14/15 my-4 px-10 py-3 text-black rounded-full ${buyButtonGradient} ${!lottery.open ? "opacity-50 cursor-not-allowed " : ""}`}
           style={{ ...buttonStyle, ...buyButtonGradient }}
           onClick={handleOpenBuyPopup}
+          disabled={!lottery.open}
         >
-          Buy tickets
+          {lottery.open ? "Buy Tickets" : "Closed"}
+         
         </button>
 
       </div>

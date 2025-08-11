@@ -5,6 +5,7 @@ import { TrendingUp } from "lucide-react"
 import UserTicketsSoldGraph from "./UserTicketsSoldGraph";
 import useWalletStore from "@/lib/useWalletStore";
 import { formatRemainingTime } from "@/lib/utils";
+import {useState,useEffect} from "react"
 
 const activeLotteryData = [
   { "Lottery Id": "L011", "Lottery Name": "Spring Raffle", Entries: 160, "Total Balance": "2.7 ETH", "Time Remaining": "1d 8h", Status: "Open" },
@@ -25,31 +26,40 @@ const Overview = () => {
 
   //Fetch the lottery Data from zustand
     const raffleContracts = useWalletStore(state => state.raffleContracts);
-    const openRaffles = raffleContracts.filter(r => r.is_open);
+    const openRaffles = raffleContracts?.filter(r => r.is_open);
+    const [activeLotteryData, setActiveLotteryData] = useState([]);
 
     if (!openRaffles || openRaffles.length === 0) {
       return <div>No active lotteries found.</div>;
     }
 
-    const activeLotteryData = openRaffles.map(r => {
-    const lastOpened = new Date(r.last_opened_at).getTime();
-    const intervalMs = r.time_interval * 1000;
-    const now = Date.now();
+    useEffect(() => {
 
-    const remainingMs = Math.max(lastOpened + intervalMs - now, 0);
+      async function fetchActiveLotteries() {
+        const activeLotteries = openRaffles.map(r => {
+          const lastOpened = new Date(r.last_opened_at).getTime();
+          const intervalMs = r.time_interval * 1000;
+          const now = Date.now();
 
-    return {
-      id: r.raffle_id,
-      name: r.name,
-      total_entries: r.total_entries,
-      total_balance: r.total_balance + " ETH",
-      formatted_remaining_time: formatRemainingTime(remainingMs),
-      status: r.is_open? "Open" : "CLOSED"
-    };
-      });
+          const remainingMs = Math.max(lastOpened + intervalMs - now, 0);
 
-      console.log("Active Lottery Data:", activeLotteryData)
+          return {
+            id: r.raffle_id,
+            name: r.name,
+            total_entries: r.total_entries,
+            total_balance: r.total_balance + " ETH",
+            formatted_remaining_time: formatRemainingTime(remainingMs),
+            status: r.is_open? "Open" : "CLOSED"
+          };
+        });
 
+        setActiveLotteryData(activeLotteries);
+      }
+      fetchActiveLotteries();
+      
+    }, [raffleContracts]);
+
+    
 
 
 

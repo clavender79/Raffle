@@ -5,6 +5,7 @@ import AdminTable from "./AdminTable";
 import AddMoreLotteries from "./AddMoreLotteries";
 import useWalletStore from "@/lib/useWalletStore";
 import { formatRemainingTime } from "@/lib/utils";
+import { useState, useEffect } from "react"
 
 
 
@@ -26,6 +27,7 @@ const ActivePage = () => {
     //Fetch the lottery Data from zustand
     const raffleContracts = useWalletStore(state => state.raffleContracts);
     const openRaffles = raffleContracts.filter(r => r.is_open);
+    const [searchTerm, setSearchTerm] = useState("");
 
     if(!openRaffles || openRaffles.length === 0) {
         return <div>No active lotteries found.</div>;
@@ -52,7 +54,8 @@ const ActivePage = () => {
 
     return (
         <>
-            <LotterySearchFilter className="text-[#585858] bg-black border-gray w-1/3" FilterClassName="border-1 border-[#585858]" structureClassName="justify-between" />
+            <LotterySearchFilter searchTerm={searchTerm}
+            onSearchChange={setSearchTerm} className="text-[#585858] bg-black border-gray w-1/3" FilterClassName="border-1 border-[#585858]" structureClassName="justify-between" />
             <div className="mt-4">
 
                 <AdminTable

@@ -1,20 +1,23 @@
 
 "use client";
-
 import { useState } from "react";
+import { handleBuyTickets } from "@/lib/contractInteractions";
+import { toast } from "sonner";
 
 const BuyTicketsPopup = ({ lottery, onClose }) => {
-
 
 
     const [ticketCount, setTicketCount] = useState(1);
     const totalCost = (lottery.fees * ticketCount).toFixed(3); // Calculate total cost
 
-    const handleBuyTickets = () => {
+    const handleBuyingTickets =async () => {
         // Placeholder for smart contract integration with wagmi
         console.log(`Buying ${ticketCount} tickets for lottery ${lottery.id} at ${new Date().toLocaleString('en-PK', { timeZone: 'Asia/Karachi' })}. Total cost: ${totalCost} ETH`);
-        // Add wagmi logic here (e.g., usePrepareContractWrite, useContractWrite)
-        onClose(); // Close popup after purchase (for demo)
+
+        await handleBuyTickets(lottery.contractAddress, ticketCount, lottery.fees);
+
+        toast.success("Tickets purchased successfully!");
+        onClose(); // Close popup after purchase
     };
 
     return (
@@ -95,7 +98,7 @@ const BuyTicketsPopup = ({ lottery, onClose }) => {
 
                             boxShadow: " 0 4px 10px 0 rgba(0, 0, 0, 0.25)"
                         }}
-                        onClick={handleBuyTickets}
+                        onClick={handleBuyingTickets}
                     >
                         Confirm Transaction
                     </button>

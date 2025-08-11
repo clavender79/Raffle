@@ -1,7 +1,5 @@
 "use client"
 
-
-
 import { Search, ListFilter  } from "lucide-react"
 
 export default function LotterySearchFilter({ searchTerm, onSearchChange, onFilterClick, className='', inputClassName='', FilterClassName='', structureClassName='' }) {

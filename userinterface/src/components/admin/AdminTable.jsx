@@ -4,7 +4,7 @@
 import { useRouter } from "next/navigation";
 
 
-const AdminTable = ({ headers, data, lastColumnType = null }) => {
+const AdminTable = ({ headers, data, lastColumnType = null, tbodyClassName='' , tablepaddingX='px-8' }) => {
 
     const router = useRouter();
    
@@ -28,7 +28,8 @@ const AdminTable = ({ headers, data, lastColumnType = null }) => {
         }
 
         if (lastColumnType === "history") {
-            const lotteryId = row["Lottery Id"];
+          
+            const lotteryId = row["id"];
             return (
                 <button onClick={() => router.push(`/admin/history/${lotteryId}`)} className="px-2 py-1 bg-[#0067A2] text-white border border-[#73C5FF] rounded-3xl">
                     history
@@ -40,15 +41,15 @@ const AdminTable = ({ headers, data, lastColumnType = null }) => {
     };
 
     return (
-        <div className="overflow-x-auto border border-[#383838] rounded-2xl">
+        <div className= {`overflow-x-auto border border-[#383838] rounded-2xl ${tbodyClassName} `}>
             <table className="w-full border-collapse  ">
                 {/* Table Header */}
-                <thead className="bg-[#101010]">
+                <thead className="bg-[#101010] sticky top-0">
                     <tr>
                         {alignedHeaders.map((header, index) => (
                             <th
                                 key={index}
-                                className="bg-[#101010] text-white pt-2 pb-4 px-8 text-left"
+                                className={`bg-[#101010] text-white pt-2 pb-4 ${tablepaddingX} text-left`}
                             >
                                 {header}
                             </th>
@@ -56,7 +57,7 @@ const AdminTable = ({ headers, data, lastColumnType = null }) => {
                     </tr>
                 </thead>
                 {/* Table Body */}
-                <tbody className="">
+                <tbody  >
                     {data.map((row, rowIndex) => (
                         <tr
                             key={rowIndex}
@@ -66,7 +67,7 @@ const AdminTable = ({ headers, data, lastColumnType = null }) => {
                             {Object.values(row)
                                 .slice(0, lastColumnType === "status" ? -1 : undefined) // Exclude last column if special
                                 .map((value, cellIndex) => (
-                                    <td key={cellIndex} className="py-2 px-8">
+                                    <td key={cellIndex} className={`py-2 ${tablepaddingX}`}>
                                         {value}
                                     </td>
                                 ))}

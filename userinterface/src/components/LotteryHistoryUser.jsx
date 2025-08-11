@@ -1,13 +1,32 @@
+"use client"
 
+import { useState, useEffect } from "react";
+import { getLotteryHistoryById } from "@/lib/dbUtils";
 
-
-const LotteryHistoryUser = ({ handleCloseHistoryPopup }) => {
+const LotteryHistoryUser = ({ handleCloseHistoryPopup, lottery }) => {
 
     const defaultData = [
-        { lotteryId: '#789', lastWinner: '0x0268F79341CB1534', prize: '3 ETH', date: 'June 25, 2025', status: 'Active' },
-        { lotteryId: '#456', lastWinner: '0x0268F79341CB1534', prize: '1.5 ETH', date: 'June 20, 2025', status: 'Completed' },
-        { lotteryId: '#456', lastWinner: '0x0268F79341CB1534', prize: '1.5 ETH', date: 'June 20, 2025', status: 'Completed' },
+        { lotteryId: '#789', winner: '0x0268F79341CB1534', prize: '3 ETH', timestamp: 'June 25, 2025', status: 'Active' },
+        { lotteryId: '#456', winner: '0x0268F79341CB1534', prize: '1.5 ETH', timestamp: 'June 20, 2025', status: 'Completed' },
+        { lotteryId: '#456', winner: '0x0268F79341CB1534', prize: '1.5 ETH', timestamp: 'June 20, 2025', status: 'Completed' },
     ];
+
+    const [historyData, setHistoryData] = useState(defaultData);
+
+    useEffect(() => {
+
+        async function fetchHistory() {
+            console.log("Lottery Id: ", lottery);
+            const history = await getLotteryHistoryById(Number(lottery))
+            console.log("History Data:", history);
+            setHistoryData(history);
+        }
+
+        fetchHistory();
+    }, []);
+
+
+
 
     return (
 
@@ -23,37 +42,39 @@ const LotteryHistoryUser = ({ handleCloseHistoryPopup }) => {
                 <div className="flex  items-center  mt-6 mb-4 justify-between">
 
                     <p className="text-4xl tracking-wide font-md">Lottery History</p>
-                    <p>#786</p>
+                    <p className="text-4xl tracking-wide font-md">#{lottery}</p>
                 </div>
 
                 <div>
-                    {defaultData.map((row, index) => (
-                        <div key={index} className="bg-white text-[#000000] bg-opacity-80 rounded-2xl p-2 mt-4 w-full shadow-lg backdrop-blur-sm mb-4 flex"
+                    {historyData.length === 0 ? (
+                        <p className="w-full">No history available</p>
+                    ) : (
+                        historyData.map((row, index) => (
+                            <div
+                                key={index}
+                                className="bg-white text-[#000000] bg-opacity-80 rounded-2xl p-2 mt-4 w-full shadow-lg backdrop-blur-sm mb-4 flex"
+                                style={{
+                                    boxShadow:
+                                        "0 4px 10px 0 rgba(0, 0, 0, 0.25) inset, 0 4px 10px 0 rgba(0, 0, 0, 0.25)",
+                                }}
+                            >
+                                <div className="flex flex-col me-12 gap-2">
+                                    <p className="text-[#00000099]">Winner</p>
+                                    <p>{row.winner}</p>
+                                </div>
 
-                            style={{
-                                boxShadow: "0 4px 10px 0 rgba(0, 0, 0, 0.25) inset, 0 4px 10px 0 rgba(0, 0, 0, 0.25)"
-                            }} >
+                                <div className="flex flex-col me-8 gap-2">
+                                    <p className="text-[#00000099]">Prize</p>
+                                    <p>{row.prize}</p>
+                                </div>
 
-                            <div className="flex flex-col me-12 gap-2">
-                                <p className="text-[#00000099]"> Winner</p>
-                                <p className=" ">{row.lastWinner}</p>
-
+                                <div className="flex flex-col gap-2">
+                                    <p className="text-[#00000099]">Date</p>
+                                    <p>{row.timestamp}</p>
+                                </div>
                             </div>
-
-                            <div className="flex flex-col me-8 gap-2">
-                                <p className="text-[#00000099]"> Prize</p>
-                                <p className="  ">{row.prize}</p>
-                            </div>
-
-                            <div className="flex flex-col  gap-2">
-                                <p className="text-[#00000099]">Date</p>
-                                <p className=" ">{row.date}</p>
-                            </div>
-
-
-
-                        </div>
-                    ))}
+                        ))
+                    )}
                 </div>
 
             </div>

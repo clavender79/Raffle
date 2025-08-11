@@ -13,7 +13,7 @@ export default function Providers({ children }) {
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         {children}
-        <Toaster richColors position="top-right" />
+        <Toaster richColors position="top-left" />
       </QueryClientProvider>
     </WagmiProvider>
   );

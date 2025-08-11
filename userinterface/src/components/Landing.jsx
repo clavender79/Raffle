@@ -5,8 +5,45 @@ import FeatureCard from './FeatureCard';
 
 import LotteryHistoryTable from './LotteryHistoryTable';
 import BuyYourTicketsButton from './BuyYourTicketsButton';
+import { useRouter } from 'next/navigation';
+import { getLotteriesDetail, getLotteryHistoryAndRaffleDetails } from '@/lib/dbUtils';
+import {useState,useEffect} from 'react';
+
 
 const Landing = () => {
+
+  const router = useRouter();
+  const [activeCount, setActiveCount] = useState(0);
+  const [balance, setBalance] = useState(0);
+  const [players, setPlayers] = useState(0);
+  const [lotteryHistoryData,setLotteryHistoryData] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const { activeCount, balance, players } = await getLotteriesDetail();
+      console.log("Lottery Details:", { activeCount, balance, players });
+      setActiveCount(activeCount);
+      setBalance(balance);
+      setPlayers(players);
+
+    const lotteryHistory = await getLotteryHistoryAndRaffleDetails();
+    const formattedLotteryData=lotteryHistory.map(item => {
+      // Map the data to the desired format
+      return {
+        lotteryId: "#" + item.raffle_id,
+        lastWinner: item.winner,
+        prize: item.prize,
+        date: item.timestamp,
+        status: item.status=="Open"? "Active" : "Closed",
+      };
+    });
+    setLotteryHistoryData(formattedLotteryData);
+
+    };
+    fetchData();
+    
+  }, []);
+
   return (
     <>
       <div className="relative h-[80vh] w-[97vw] flex items-center justify-center mt-4 bg-gradient-to-b from-blue-200 to-blue-500 rounded-4xl m-2">
@@ -24,8 +61,9 @@ const Landing = () => {
           <h1 className="text-5xl font-bold text-center mt-4">
             First-ever blockchain <br />powered lottery platform
           </h1>
-          <BuyYourTicketsButton/>
+          <BuyYourTicketsButton onClick={()=> router.push('/lotteries')}/>
         </div>
+
         {/* Dashed Lines and Icons */}
         <div className="absolute inset-0 pointer-events-none">
           {/* Vertical dashed lines with custom heights */}
@@ -77,11 +115,14 @@ const Landing = () => {
         </div>
 
 
-        <LotteryStats className="p-6 px-10 bg-white rounded-2xl absolute flex bottom-[-8vh] z-20 gap-5  " style={{
+        <LotteryStats className="p-6 px-10 bg-white rounded-2xl absolute flex bottom-[-8vh] z-20 gap-5  " activeLotteries={activeCount} balance={balance} Players={players}
+        
+        style={{
           boxShadow: `
       inset 0 4px 20px 0px #A9DCFF,
       inset 0 -4px 4px 0px #A9DCFF
     `,
+
         }} />
 
 
@@ -162,9 +203,9 @@ const Landing = () => {
             filter: 'drop-shadow(0 0 10px rgba(0, 163, 255, 0.8)) drop-shadow(0 0 20px rgba(0, 163, 255, 0.6))',
           }}
         />
-        <LotteryHistoryTable />
+        <LotteryHistoryTable data={lotteryHistoryData} />
         <p className="font-bold text-[#FFFFFF] text-5xl mt-6 z-20">Play & Win</p>
-         <BuyYourTicketsButton/>
+         <BuyYourTicketsButton onClick={()=> router.push('/lotteries')} className="relative z-30"/>
       </div>
 
       

@@ -11,8 +11,8 @@ export default function Home() {
 
   // Redirect to admin overview if user is admin
   if (isAdmin) {
-    router.push("/admin/overview");
     return null; // Prevent rendering the landing page while redirecting
+    router.push("/admin/overview");
   }
   return (
    

@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import LotteryBanner from "@/components/LotteryBanner"
 import LotteryCard from "@/components/LotteryCard"
 import LotterySearchFilter from "@/components/LotterySearchFilter"
 import BuyTicketPopup from "@/components/BuyTicketsPopup"
 import LotteryHistoryUser from "@/components/LotteryHistoryUser"
+import useWalletStore from "@/lib/useWalletStore"
 
 // Mock data
 const mockLotteries = [
@@ -75,6 +76,8 @@ const mockLotteries = [
     lastWinner: "-",
     color: "pink",
   },
+
+
 ]
 
 const selectedLotteryData = {
@@ -94,6 +97,51 @@ export default function LotteryPage() {
 
   const [isBuyPopupOpen, setIsBuyPopupOpen] = useState(false);
   const [isHistoryPopupOpen, setIsHistoryPopupOpen] = useState(false);
+  // const [lotteries,setLotteries]=useState(mockLotteries);
+  const { raffleContracts } = useWalletStore()
+  const [lotteries,setLotteries] = useState(raffleContracts)
+
+
+
+  useEffect(() => {
+
+    
+
+    const updatedLotteries = raffleContracts.map((contract) =>{ 
+
+      const lastOpened = new Date(contract.last_opened_at).getTime();
+      const intervalMs = contract.time_interval * 1000;
+      const now = Date.now();
+
+      const remainingMs = Math.max(lastOpened + intervalMs - now, 0);
+
+      return {
+        id: String(contract.raffle_id),
+        name: contract.name,
+        prizePot: contract.ticket_price * contract.total_entries,
+        players: contract.players,
+        fees: contract.ticket_price,
+        chain: contract.chain,
+        timeRemaining: remainingMs,
+        lastWinner: contract.recent_winner,
+        color: "blue",
+        totalEntries: contract.total_entries,
+        open:contract.is_open,
+        address: contract.address,
+      };
+    });
+
+    setLotteries(updatedLotteries);
+    if (updatedLotteries.length > 0) {
+    handleLotteryClick(updatedLotteries[0]);
+  }
+    console.log("Updated lotteries:", updatedLotteries[0]);
+
+    console.log("Updated raffleContracts:", raffleContracts);
+  }, [raffleContracts]);
+
+
+
 
   const handleOpenBuyPopup = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -113,20 +161,23 @@ export default function LotteryPage() {
     setIsHistoryPopupOpen(false);
   };
 
-  const filteredLotteries = mockLotteries.filter(
+  const filteredLotteries = lotteries.filter(
     (lottery) => lottery.name.toLowerCase().includes(searchTerm.toLowerCase()) || lottery.id.includes(searchTerm)
   )
 
   const handleLotteryClick = (lottery) => {
     // Convert lottery card data to banner format
+    
     const bannerData = {
       id: lottery.id,
       name: lottery.name,
       players: lottery.players,
       totalBalance: lottery.prizePot,
       fees: lottery.fees,
-      winPrediction: Math.floor(Math.random() * 40) + 50, // Random prediction between 50-90%
-      endTime: new Date(Date.now() + Math.random() * 48 * 60 * 60 * 1000), // Random time up to 48 hours
+      winPrediction: (1 / lottery.totalEntries).toFixed(2),
+      endTime: new Date(Date.now() + lottery.timeRemaining),
+      open: lottery.open,
+      address:lottery.address,
     }
     setSelectedLottery(bannerData)
   }
@@ -149,25 +200,25 @@ export default function LotteryPage() {
 
         {/* Search and Filter */}
         <div className="flex justify-between items-center mb-8 mx-20">
-          
-         <h1 className="text-2xl font-bold text-white">All Lotteries</h1>
-        <LotterySearchFilter
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          onFilterClick={() => console.log("Filter clicked")}
-          className="text-[#585858]  bg-[#FFFFFF] border-white"
-          inputClassName="bg-white/10 border-white/20 "
-          FilterClassName="text-[#585858]  bg-[#FFFFFF] border-white"
-        />
+
+          <h1 className="text-2xl font-bold text-white">All Lotteries</h1>
+          <LotterySearchFilter
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            onFilterClick={() => console.log("Filter clicked")}
+            className="text-[#585858]  bg-[#FFFFFF] border-white"
+            inputClassName="bg-white/10 border-white/20 "
+            FilterClassName="text-[#585858]  bg-[#FFFFFF] border-white"
+          />
         </div>
 
         {/* Lottery Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 mx-20">
           {filteredLotteries.slice(0, visibleLotteries).map((lottery) => (
-            <LotteryCard key={lottery.id} lottery={lottery} onClick={handleLotteryClick} handleOpenHistoryPopup={handleOpenHistoryPopup} handleOpenBuyPopup={handleOpenBuyPopup} />
+            <LotteryCard  key={lottery.id} lottery={lottery} onClick={handleLotteryClick} handleOpenHistoryPopup={handleOpenHistoryPopup} handleOpenBuyPopup={handleOpenBuyPopup} />
           ))}
 
-          {isHistoryPopupOpen ? <LotteryHistoryUser handleCloseHistoryPopup={handleCloseHistoryPopup} /> : null}
+          {isHistoryPopupOpen ? <LotteryHistoryUser handleCloseHistoryPopup={handleCloseHistoryPopup} lottery={selectedLottery.id} /> : null}
         </div>
 
         {/* Load More Button */}

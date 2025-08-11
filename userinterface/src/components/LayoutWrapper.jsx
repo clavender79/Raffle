@@ -8,6 +8,7 @@ import NavigationBar from "@/components/NavigationBar";
 import AdminSidebar from "@/components/admin/Sidebar";
 import Footer from "@/components/Footer";
 import RaffleEventListener from "@/lib/eventListeners";
+import  supabase  from "@/lib/supabase";
 
 export default function LayoutWrapper({ children }) {
   const { address, isConnected } = useAccount();
@@ -17,13 +18,26 @@ export default function LayoutWrapper({ children }) {
   const fetchRaffleContracts = useWalletStore(state => state.fetchRaffleContracts);
 
 useEffect(() => {
-  async function loadContracts() {
-    console.log("Fetching the raffle Contracts");
-    await fetchRaffleContracts();
-    console.log("Fetched the raffle Contracts");
-  }
-  loadContracts();
+  const channel = supabase
+    .channel("raffle-contracts-listener")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "raffle_contracts" },
+      (payload) => {
+        console.log("Raffle contracts updated:", payload);
+        fetchRaffleContracts();
+      }
+    )
+    .subscribe();
+
+  // Initial fetch
+  fetchRaffleContracts();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
 }, [fetchRaffleContracts]);
+
 
 
   // useEffect(() => {

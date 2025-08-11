@@ -64,7 +64,7 @@ export default function LotteryBanner({ lottery, handleCloseBuyPopup, handleOpen
                         <div className="text-white text-5xl font-bold mb-2">#{lottery.id}</div>
                         <div className="text-white/80 text-md mb-1 font-semibold">Lottery name</div>
                         <div className="text-white text-5xl font-semibold mb-4">{lottery.name}</div>
-                        <BuyYourTicketsButton onClick={handleOpenBuyPopup} />
+                        <BuyYourTicketsButton onClick={handleOpenBuyPopup} activeParam={lottery.open} />
                         
                     </div>
 

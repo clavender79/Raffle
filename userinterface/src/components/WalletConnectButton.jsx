@@ -5,11 +5,13 @@ import { useEffect, useState } from "react";
 import useWalletStore from "../lib/useWalletStore";
 import { useWalletAuth } from "../lib/auth"; // Import the custom hook for wallet authentication
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+
 
 
 export default function WalletConnectButton({ className = "", type = "" }) {
   const [isMounted, setIsMounted] = useState(false);
-  const { updateWallet } = useWalletStore();
+  const { isAdmin, updateWallet } = useWalletStore();
 
   const { address, isConnected } = useAccount();
   const { disconnect } = useDisconnect();
@@ -56,6 +58,11 @@ export default function WalletConnectButton({ className = "", type = "" }) {
             }
             else {
               console.log("Login successful, token received:", token);
+              toast.success("Login successful!");
+              if (isAdmin) {
+                // If the user is an admin, redirect to the admin dashboard
+                router.push("/admin/overview");
+              } 
             }
             console.log("Connection and login successful");
           },
