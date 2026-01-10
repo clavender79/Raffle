@@ -33,21 +33,24 @@ const ActivePage = () => {
         return <div>No active lotteries found.</div>;
     }
 
-    const lotteryData = openRaffles.map(r => {
-        const lastOpened = new Date(r.last_opened_at).getTime();
-        const intervalMs = r.time_interval * 1000;
-        const now = Date.now();
+    const lotteryData = openRaffles
+        .map(r => {
+            const lastOpened = new Date(r.last_opened_at).getTime();
+            const intervalMs = r.time_interval * 1000;
+            const now = Date.now();
 
-        const remainingMs = Math.max(lastOpened + intervalMs - now, 0);
+            const remainingMs = Math.max(lastOpened + intervalMs - now, 0);
 
-        return {
-            id: r.raffle_id,
-            name: r.name,
-            total_entries: r.total_entries,
-            total_balance: r.total_balance + " ETH",
-            formatted_remaining_time: formatRemainingTime(remainingMs)
-        };
-    });
+            return {
+                id: r.raffle_id,
+                name: r.name,
+                total_entries: r.total_entries,
+                total_balance: r.total_balance + " ETH",
+                formatted_remaining_time: formatRemainingTime(remainingMs),
+                remainingMs: remainingMs
+            };
+        })
+        .filter(lottery => lottery.remainingMs > 0); // Filter out expired lotteries
 
     console.log("Lottery Data:" ,lotteryData)
 

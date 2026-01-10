@@ -64,27 +64,69 @@ const CreateLottery = () => {
             entryFee,
             timeInterval: `${days} days, ${minutes} minutes, ${seconds} seconds`,
         });
-        //convert time interval to seconds
-        const totalSeconds = parseInt(days) * 86400 + parseInt(minutes) * 60 + parseInt(seconds);
-        console.log("Total Time Interval in seconds:", totalSeconds);
 
-        //convert entry fee to wei
-        const entryFeeInWei = parseFloat(entryFee) * 1e18; // Assuming entry fee is in ETH
-        console.log("Entry Fee in Wei:", entryFeeInWei);
+        try {
+            // Show loading toast
+            const loadingToast = toast.loading("Creating lottery...");
 
-        const txHash = await writeContract(wagmiConfig, {
-            address: RAFFLE_FACTORY_ADDRESS,
-            abi: RAFFLE_FACTORY_ABI,
-            functionName: 'CreateRaffle',
-            args: [lotteryName, entryFeeInWei, totalSeconds],
-        })
+            //convert time interval to seconds
+            const totalSeconds = parseInt(days) * 86400 + parseInt(minutes) * 60 + parseInt(seconds);
+            console.log("Total Time Interval in seconds:", totalSeconds);
 
-        await waitForTransactionReceipt(wagmiConfig, {
-            hash: txHash,
-        });
+            if (totalSeconds <= 0) {
+                toast.dismiss(loadingToast);
+                toast.error("Time interval must be greater than 0");
+                return;
+            }
 
-        console.log("Lottery created successfully with txHash:", txHash);
+            //convert entry fee to wei
+            const entryFeeInWei = BigInt(Math.floor(parseFloat(entryFee) * 1e18)); // Assuming entry fee is in ETH
+            console.log("Entry Fee in Wei:", entryFeeInWei);
 
+            if (!RAFFLE_FACTORY_ADDRESS || RAFFLE_FACTORY_ADDRESS === '0x0000000000000000000000000000000000000000') {
+                toast.dismiss(loadingToast);
+                toast.error("Factory contract not found");
+                return;
+            }
+
+            const txHash = await writeContract(wagmiConfig, {
+                address: RAFFLE_FACTORY_ADDRESS,
+                abi: RAFFLE_FACTORY_ABI,
+                functionName: 'CreateRaffle',
+                args: [lotteryName, entryFeeInWei, totalSeconds],
+            });
+
+            const receipt = await waitForTransactionReceipt(wagmiConfig, {
+                hash: txHash,
+            });
+
+            toast.dismiss(loadingToast);
+
+            if (receipt.status === 'reverted') {
+                toast.error("Transaction failed");
+                return;
+            }
+
+            console.log("Lottery created successfully with txHash:", txHash);
+            toast.success("Lottery created successfully!");
+
+            // Reset form
+            setLotteryName("");
+            setEntryFee("");
+            setDays("");
+            setMinutes("");
+            setSeconds("");
+
+        } catch (error) {
+            console.error("Error creating lottery:", error);
+            if (error.message.includes("user rejected")) {
+                toast.error("Transaction cancelled by user");
+            } else if (error.message.includes("insufficient funds")) {
+                toast.error("Insufficient funds for this transaction");
+            } else {
+                toast.error(error.message || "Failed to create lottery. Please try again.");
+            }
+        }
     };
 
     return (

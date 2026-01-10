@@ -114,6 +114,7 @@ export default function LotteryPage() {
       const now = Date.now();
 
       const remainingMs = Math.max(lastOpened + intervalMs - now, 0);
+      const isExpired = remainingMs <= 0;
 
       return {
         id: String(contract.raffle_id),
@@ -126,7 +127,7 @@ export default function LotteryPage() {
         lastWinner: contract.recent_winner,
         color: "blue",
         totalEntries: contract.total_entries,
-        open:contract.is_open,
+        open: contract.is_open && !isExpired, // Mark as closed if time expired
         address: contract.address,
       };
     });
@@ -168,6 +169,9 @@ export default function LotteryPage() {
   const handleLotteryClick = (lottery) => {
     // Convert lottery card data to banner format
     
+    // Check if lottery time has expired
+    const isExpired = lottery.timeRemaining <= 0;
+    
     const bannerData = {
       id: lottery.id,
       name: lottery.name,
@@ -176,8 +180,9 @@ export default function LotteryPage() {
       fees: lottery.fees,
       winPrediction: (1 / lottery.totalEntries).toFixed(2),
       endTime: new Date(Date.now() + lottery.timeRemaining),
-      open: lottery.open,
-      address:lottery.address,
+      open: lottery.open && !isExpired, // Mark as closed if time expired
+      address: lottery.address,
+      contractAddress: lottery.address,
     }
     setSelectedLottery(bannerData)
   }

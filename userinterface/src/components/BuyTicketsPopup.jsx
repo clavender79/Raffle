@@ -10,14 +10,27 @@ const BuyTicketsPopup = ({ lottery, onClose }) => {
     const [ticketCount, setTicketCount] = useState(1);
     const totalCost = (lottery.fees * ticketCount).toFixed(3); // Calculate total cost
 
-    const handleBuyingTickets =async () => {
+    const handleBuyingTickets = async () => {
         // Placeholder for smart contract integration with wagmi
         console.log(`Buying ${ticketCount} tickets for lottery ${lottery.id} at ${new Date().toLocaleString('en-PK', { timeZone: 'Asia/Karachi' })}. Total cost: ${totalCost} ETH`);
 
-        await handleBuyTickets(lottery.contractAddress, ticketCount, lottery.fees);
+        try {
+            // Show loading toast
+            const loadingToast = toast.loading("Processing transaction...");
 
-        toast.success("Tickets purchased successfully!");
-        onClose(); // Close popup after purchase
+            const result = await handleBuyTickets(lottery.contractAddress || lottery.address, ticketCount, lottery.fees);
+
+            // Dismiss loading toast
+            toast.dismiss(loadingToast);
+
+            if (result.success) {
+                toast.success("Tickets purchased successfully!");
+                onClose(); // Close popup after purchase
+            }
+        } catch (error) {
+            console.error("Error in handleBuyingTickets:", error);
+            toast.error(error.message || "Failed to purchase tickets");
+        }
     };
 
     return (
