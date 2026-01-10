@@ -38,9 +38,9 @@ contract HelperConfig is Script, CodeConstants {
     function getSepoliaNetworkConfig() public pure returns (NetworkConfig memory) {
         return NetworkConfig(
             0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B,
-            87519156596915915835777957811913627480183150574359833930844300774214624913740,
+            97885952563417521112045702853058881314840222887341758736713635074066445282871,
             0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
-            500000,
+            200000,
             0x779877A7B0D9E8603169DdbD7836e478b4624789,
             0x8943F7348E2559C6E69eeCb0dA932424C3E6dC66, //burner wallet address
             0xb0E49c5D0d05cbc241d68c05BC5BA1d1B7B72976, //Automation Registrar address

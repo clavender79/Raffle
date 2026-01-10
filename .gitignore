@@ -16,7 +16,8 @@ out/
 docs/
 
 # Dotenv file
-.env
+.env*
+
 
 
 
@@ -28,4 +29,5 @@ docs/
 Thumbs.db
 
 # === GitHub-related
-.github/            
+.github/     
+./frontend_old

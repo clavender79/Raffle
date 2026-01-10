@@ -11,6 +11,7 @@ import {LinkToken} from "test/mocks/LinkToken.sol";
 import {MockKeeperRegistry2_1} from "@chainlink/contracts/src/v0.8/automation/mocks/MockKeeperRegistry2_1.sol";
 import {Vm} from "forge-std/Vm.sol";
 import {DeployRaffleFactory} from "script/DeployRaffleFactory.s.sol";
+import {CreateSubscription} from "script/Interaction.s.sol";
 
 contract RaffleIntegrationTest is Test {
     uint256 public constant LOCAL_CHAIN_ID = 31337;
@@ -30,11 +31,24 @@ contract RaffleIntegrationTest is Test {
     function setUp() public {
         // Deploy contracts using DeployRaffle script
         DeployRaffleFactory deployer = new DeployRaffleFactory();
+
         raffleFactory = deployer.deployContract();
+        owner = raffleFactory.getOwner();
+
+        if (block.chainid == LOCAL_CHAIN_ID) {
+            vm.prank(owner);
+            CreateSubscription createSubscription = new CreateSubscription();
+            (uint256 subscriptionId,) =
+                createSubscription.createSubscription(raffleFactory.getVRFCoordinator(), address(raffleFactory));
+
+            vm.prank(owner);
+            raffleFactory.setSubscriptionId(subscriptionId);
+
+            console.log("Raffle factory owner", owner);
+        }
 
         linkToken = LinkToken(raffleFactory.getLinkToken());
         vrfCoordinator = VRFCoordinatorV2_5Mock(raffleFactory.getVRFCoordinator());
-        owner = raffleFactory.getOwner();
 
         automationRegistry = MockKeeperRegistry2_1(raffleFactory.getAutomationRegistry());
 
@@ -70,6 +84,11 @@ contract RaffleIntegrationTest is Test {
         raffleFactory.CreateRaffle(RAFFLE_NAME_1, ENTRANCE_FEE, TIME_INTERVAL);
 
         uint256 raffleId = raffleFactory.getRaffleCount() - 1;
+
+        vm.startPrank(owner);
+        raffleFactory.addConsumerToSubscription(raffleId);
+        vm.stopPrank();
+
         Raffle raffle = Raffle(raffleFactory.getRaffleById(raffleId));
         uint256 subId = raffleFactory.getSubscriptionId();
 
@@ -95,9 +114,9 @@ contract RaffleIntegrationTest is Test {
 
         // Step 3: Players enter the raffle
         vm.prank(player1);
-        raffle.enterRaffle{value: ENTRANCE_FEE}();
+        raffle.enterRaffle{value: ENTRANCE_FEE}(1);
         vm.prank(player2);
-        raffle.enterRaffle{value: ENTRANCE_FEE}();
+        raffle.enterRaffle{value: ENTRANCE_FEE}(1);
 
         assertEq(raffle.getTotalPlayers(), 2);
         assertEq(raffle.getPlayer(0), player1);
@@ -150,7 +169,7 @@ contract RaffleIntegrationTest is Test {
 
         // Step 9: Verify new raffle entry
         vm.prank(player1);
-        raffle.enterRaffle{value: ENTRANCE_FEE}();
+        raffle.enterRaffle{value: ENTRANCE_FEE}(1);
 
         assertEq(raffle.getTotalPlayers(), 1);
         assertEq(raffle.getPlayersTotalTickets(player1), 1);
@@ -161,6 +180,11 @@ contract RaffleIntegrationTest is Test {
         vm.startPrank(owner);
         raffleFactory.CreateRaffle(RAFFLE_NAME_1, ENTRANCE_FEE, TIME_INTERVAL);
         raffleFactory.CreateRaffle(RAFFLE_NAME_2, ENTRANCE_FEE * 2, TIME_INTERVAL * 2);
+        vm.stopPrank();
+
+        vm.startPrank(owner);
+        raffleFactory.addConsumerToSubscription(raffleFactory.getRaffleCount() - 2);
+        raffleFactory.addConsumerToSubscription(raffleFactory.getRaffleCount() - 1);
         vm.stopPrank();
 
         assertEq(raffleFactory.getRaffleCount(), 2);
@@ -191,9 +215,9 @@ contract RaffleIntegrationTest is Test {
 
         // Players enter both raffles
         vm.prank(player1);
-        raffle1.enterRaffle{value: ENTRANCE_FEE}();
+        raffle1.enterRaffle{value: ENTRANCE_FEE}(1);
         vm.prank(player1);
-        raffle2.enterRaffle{value: ENTRANCE_FEE * 2}();
+        raffle2.enterRaffle{value: ENTRANCE_FEE * 2}(1);
 
         assertEq(raffle1.getTotalPlayers(), 1);
         assertEq(raffle2.getTotalPlayers(), 1);

@@ -13,6 +13,7 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     error Raffle_UpkeepNotNeeded(uint256 balance, uint256 noOfPlayers, uint256 raffleState);
     error Raffle_NotOwner();
     error Raffle_RaffleNotClosed();
+    error Raffle_AmountCantBeZero();
 
     enum RaffleState {
         OPEN,
@@ -28,16 +29,19 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     uint256 private immutable i_subscriptionId;
     uint32 private immutable i_callbackGasLimit;
     address private immutable i_owner;
+    uint256 private immutable i_raffleId;
 
     uint256 private s_lastTimeStamp;
     RaffleState private s_raffleState;
 
     address payable[] private s_players;
     address payable private s_recentWinner;
+    mapping(address => uint256) private s_playerTicketCounts;
 
     //Events
-    event RaffleEntered(address indexed player);
-    event WinnerPicked(address indexed player, uint256 amount, uint256 timestamp);
+    event RaffleEntered(uint256 indexed raffleId, address indexed player, uint256 ticketCount);
+    event WinnerPicked(uint256 indexed raffleId, address indexed player, uint256 amount, uint256 timestamp);
+    event RaffleOpened(uint256 indexed raffleId, uint256 indexed timestamp);
     event RequestedRaffleWinner(uint256 indexed requestId);
 
     constructor(
@@ -46,29 +50,41 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
         address vrfCoordinator,
         uint256 subscriptionId,
         bytes32 gasLane,
-        uint32 callbackGasLimit
+        uint32 callbackGasLimit,
+        uint256 raffleId
     ) VRFConsumerBaseV2Plus(vrfCoordinator) {
         i_entranceFee = entranceFee;
         i_timeInterval = timeInterval;
         i_keyHash = gasLane;
         i_subscriptionId = subscriptionId;
-        i_callbackGasLimit = callbackGasLimit;
+        i_callbackGasLimit = callbackGasLimit / 2;
         i_owner = msg.sender;
+        i_raffleId = raffleId;
 
         s_lastTimeStamp = block.timestamp;
         s_raffleState = RaffleState.OPEN;
     }
 
     //To Enter the Raffle
-    function enterRaffle() public payable {
+    function enterRaffle(uint256 ticketCount) public payable {
         if (s_raffleState != RaffleState.OPEN) {
             revert Raffle_RaffleNotOpen();
         }
-        if (msg.value < i_entranceFee) {
+        if (ticketCount == 0) {
+            revert Raffle_AmountCantBeZero();
+        }
+        if (msg.value < i_entranceFee * ticketCount) {
             revert Raffle_SendMoreToEnterRaffle();
         }
-        s_players.push(payable(msg.sender));
-        emit RaffleEntered(msg.sender);
+
+        // Add to s_players if new player
+        if (s_playerTicketCounts[msg.sender] == 0) {
+            s_players.push(payable(msg.sender));
+        }
+
+        s_playerTicketCounts[msg.sender] += ticketCount;
+
+        emit RaffleEntered(i_raffleId, msg.sender, ticketCount);
     }
 
     function checkUpkeep(bytes memory /* checkData */ )
@@ -88,6 +104,9 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
         if (timePassed && !hasPlayers) {
             s_raffleState = RaffleState.CLOSED; //have to close
             s_recentWinner = payable(address(0));
+            for (uint256 i = 0; i < s_players.length; i++) {
+                delete s_playerTicketCounts[s_players[i]];
+            }
             s_players = new address payable[](0);
             s_lastTimeStamp = block.timestamp;
         }
@@ -120,11 +139,24 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     }
 
     function fulfillRandomWords(uint256, /* requestId */ uint256[] calldata randomWords) internal override {
-        uint256 indexOfWinner = randomWords[0] % s_players.length;
-        s_recentWinner = payable(s_players[indexOfWinner]);
+        // Weighted random selection
+        uint256 totalEntries = getTotalEntries();
+        uint256 index = randomWords[0] % totalEntries;
+        uint256 currentSum = 0;
+        for (uint256 i = 0; i < s_players.length; i++) {
+            currentSum += s_playerTicketCounts[s_players[i]];
+            if (index < currentSum) {
+                s_recentWinner = payable(s_players[i]);
+                break;
+            }
+        }
 
         s_raffleState = RaffleState.CLOSED; //CLOSED UNTIL A NEW RAFFLE IS STARTED
+        for (uint256 i = 0; i < s_players.length; i++) {
+            delete s_playerTicketCounts[s_players[i]];
+        }
         s_players = new address payable[](0);
+
         s_lastTimeStamp = block.timestamp;
         //storing the total balance
         uint256 totalBalance = address(this).balance;
@@ -146,7 +178,7 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
             revert Raffle_TransferFailed();
         }
 
-        emit WinnerPicked(s_recentWinner, totalBalance, s_lastTimeStamp);
+        emit WinnerPicked(i_raffleId, s_recentWinner, totalBalance, s_lastTimeStamp);
     }
 
     function openRaffle() external onlyOwner {
@@ -155,6 +187,9 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
         }
         s_raffleState = RaffleState.OPEN;
         s_lastTimeStamp = block.timestamp;
+        s_recentWinner = payable(address(0));
+
+        emit RaffleOpened(i_raffleId, s_lastTimeStamp);
     }
 
     function getRaffleState() external view returns (RaffleState) {
@@ -167,6 +202,14 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
 
     function getTotalPlayers() external view returns (uint256) {
         return s_players.length;
+    }
+
+    function getTotalEntries() public view returns (uint256) {
+        uint256 totalEntries = 0;
+        for (uint256 i = 0; i < s_players.length; i++) {
+            totalEntries += s_playerTicketCounts[s_players[i]];
+        }
+        return totalEntries;
     }
 
     function getTimeLeft() external view returns (uint256) {
@@ -202,13 +245,7 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     }
 
     function getPlayersTotalTickets(address player) external view returns (uint256) {
-        uint256 totalTickets = 0;
-        for (uint256 i = 0; i < s_players.length; i++) {
-            if (s_players[i] == player) {
-                totalTickets++;
-            }
-        }
-        return totalTickets;
+        return s_playerTicketCounts[player];
     }
 
     function getOwner() external view returns (address) {
@@ -225,5 +262,9 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
 
     function getTimeInterval() external view returns (uint256) {
         return i_timeInterval;
+    }
+
+    function getRaffleId() external view returns (uint256) {
+        return i_raffleId;
     }
 }

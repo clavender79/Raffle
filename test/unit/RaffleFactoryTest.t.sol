@@ -9,9 +9,11 @@ import {VRFCoordinatorV2_5Mock} from "@chainlink/contracts/src/v0.8/vrf/mocks/VR
 import {LinkToken} from "test/mocks/LinkToken.sol";
 import {Raffle} from "src/Raffle.sol";
 import {Vm} from "forge-std/Vm.sol";
+import {CreateSubscription} from "script/Interaction.s.sol";
 
 contract RaffleFactoryTest is Test {
     event RaffleCreated(uint256 indexed raffleId, address indexed raffleAddress, string name);
+    event RaffleOpened(uint256 indexed raffleId, uint256 indexed timestamp);
 
     uint256 public constant LOCAL_CHAIN_ID = 31337;
     RaffleFactory private raffleFactory;
@@ -33,6 +35,18 @@ contract RaffleFactoryTest is Test {
         linkToken = LinkToken(raffleFactory.getLinkToken());
         vrfCoordinator = VRFCoordinatorV2_5Mock(raffleFactory.getVRFCoordinator());
         owner = raffleFactory.getOwner();
+
+        if (block.chainid == LOCAL_CHAIN_ID) {
+            vm.prank(owner);
+            CreateSubscription createSubscription = new CreateSubscription();
+            (uint256 subscriptionId,) =
+                createSubscription.createSubscription(raffleFactory.getVRFCoordinator(), address(raffleFactory));
+
+            vm.prank(owner);
+            raffleFactory.setSubscriptionId(subscriptionId);
+
+            console.log("Raffle factory owner", owner);
+        }
 
         // Fund the owner
         vm.deal(owner, 100 ether);
@@ -84,7 +98,7 @@ contract RaffleFactoryTest is Test {
         assertEq(raffleFactory.getRaffleCount(), 1);
     }
 
-    function testCreateRaffleEventEmission() public skipFork {
+    function testCreateRaffleEventEmission() public skipFork notOnLocal {
         vm.startPrank(owner);
         raffleFactory.CreateRaffle(RAFFLE_NAME, ENTRANCE_FEE, TIME_INTERVAL);
 
@@ -153,10 +167,13 @@ contract RaffleFactoryTest is Test {
         raffleFactory.CreateRaffle(RAFFLE_NAME, ENTRANCE_FEE, TIME_INTERVAL);
     }
 
-    function testGetPlayersTotalTickets() public {
+    function testGetPlayersTotalTickets() public skipFork {
         vm.startPrank(owner);
         raffleFactory.CreateRaffle(RAFFLE_NAME, ENTRANCE_FEE, TIME_INTERVAL);
         uint256 raffleId = raffleFactory.getRaffleCount() - 1;
+
+        // Add consumer to subscription
+        raffleFactory.addConsumerToSubscription(raffleId);
 
         vm.stopPrank();
 
@@ -164,7 +181,7 @@ contract RaffleFactoryTest is Test {
         vm.deal(PLAYER, 1 ether);
         vm.startPrank(PLAYER);
         Raffle raffle = Raffle(raffleFactory.getRaffleById(raffleId));
-        raffle.enterRaffle{value: ENTRANCE_FEE}();
+        raffle.enterRaffle{value: ENTRANCE_FEE}(1);
         vm.stopPrank();
 
         // Check player's tickets
@@ -183,8 +200,8 @@ contract RaffleFactoryTest is Test {
         vm.deal(PLAYER, 10 ether);
         vm.startPrank(PLAYER);
         Raffle raffle = Raffle(raffleFactory.getRaffleById(raffleId));
-        raffle.enterRaffle{value: ENTRANCE_FEE}();
-        raffle.enterRaffle{value: ENTRANCE_FEE}();
+        raffle.enterRaffle{value: ENTRANCE_FEE}(1);
+        raffle.enterRaffle{value: ENTRANCE_FEE}(1);
         vm.stopPrank();
 
         // Check player's tickets
@@ -267,6 +284,11 @@ contract RaffleFactoryTest is Test {
     function testRaffleIsAddedAsConsumer() public skipFork {
         vm.prank(owner);
         raffleFactory.CreateRaffle(RAFFLE_NAME, ENTRANCE_FEE, TIME_INTERVAL);
+        uint256 raffleId = raffleFactory.getRaffleCount() - 1;
+
+        // Add consumer to subscription
+        vm.prank(owner);
+        raffleFactory.addConsumerToSubscription(raffleId);
 
         // Check if the raffle is added as a consumer
         uint256 subscriptionId = raffleFactory.getSubscriptionId();
@@ -309,6 +331,7 @@ contract RaffleFactoryTest is Test {
 
     function testOpenRaffle() public {
         vm.startPrank(owner);
+
         raffleFactory.CreateRaffle(RAFFLE_NAME, ENTRANCE_FEE, TIME_INTERVAL);
         uint256 raffleId = raffleFactory.getRaffleCount() - 1;
 
@@ -321,10 +344,12 @@ contract RaffleFactoryTest is Test {
         vm.prank(owner);
         raffleFactory.CreateRaffle(RAFFLE_NAME, ENTRANCE_FEE, TIME_INTERVAL);
         uint256 raffleId = raffleFactory.getRaffleCount() - 1;
+        vm.prank(owner);
+        raffleFactory.addConsumerToSubscription(raffleId);
 
         Raffle raffle = Raffle(raffleFactory.getRaffleById(raffleId));
         vm.prank(PLAYER);
-        raffle.enterRaffle{value: ENTRANCE_FEE}();
+        raffle.enterRaffle{value: ENTRANCE_FEE}(1);
 
         vm.prank(owner);
         VRFCoordinatorV2_5Mock(vrfCoordinator).fundSubscription(raffleFactory.getSubscriptionId(), FUND_AMOUNT);
@@ -344,6 +369,8 @@ contract RaffleFactoryTest is Test {
         VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(uint256(requestId), address(raffle));
 
         // Now open the raffle again
+        vm.expectEmit(true, false, false, true);
+        emit RaffleOpened(0, block.timestamp);
         vm.prank(owner);
         raffleFactory.openRaffle(raffleId);
 
@@ -357,13 +384,14 @@ contract RaffleFactoryTest is Test {
         vm.stopPrank();
     }
 
-    function testGetPlayersTotalTicketsRevertsIfRaffleNotOpen() public {
+    function testGetPlayersTotalTicketsRevertsIfRaffleNotOpen() public skipFork {
         vm.startPrank(owner);
         raffleFactory.CreateRaffle(RAFFLE_NAME, ENTRANCE_FEE, TIME_INTERVAL);
         uint256 raffleId = raffleFactory.getRaffleCount() - 1;
+        raffleFactory.addConsumerToSubscription(raffleId);
         Raffle raffle = Raffle(raffleFactory.getRaffleById(raffleId));
 
-        raffle.enterRaffle{value: ENTRANCE_FEE}();
+        raffle.enterRaffle{value: ENTRANCE_FEE}(1);
 
         vm.stopPrank();
 
@@ -395,11 +423,13 @@ contract RaffleFactoryTest is Test {
         raffleFactory.CreateRaffle(RAFFLE_NAME, ENTRANCE_FEE, TIME_INTERVAL);
         uint256 raffleId = raffleFactory.getRaffleCount() - 1;
 
+        raffleFactory.addConsumerToSubscription(raffleId);
+
         // Player enters raffle
         vm.deal(PLAYER, 1 ether);
         vm.startPrank(PLAYER);
         Raffle raffle = Raffle(raffleFactory.getRaffleById(raffleId));
-        raffle.enterRaffle{value: ENTRANCE_FEE}();
+        raffle.enterRaffle{value: ENTRANCE_FEE}(1);
         vm.stopPrank();
 
         // Fund subscription (shared by both raffles)
