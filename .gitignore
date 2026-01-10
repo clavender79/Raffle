@@ -30,4 +30,4 @@ Thumbs.db
 
 # === GitHub-related
 .github/     
-./frontend_old
+frontend_old/
