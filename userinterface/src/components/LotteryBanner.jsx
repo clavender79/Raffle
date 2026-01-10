@@ -11,7 +11,7 @@ export default function LotteryBanner({ lottery, handleCloseBuyPopup, handleOpen
         >
             <Image
                 src="/lotterypanel.svg"
-                alt="LuckyChain Background"
+                alt="RaffleRun Background"
                 sizes="100vw"
                 fill
                 className="object-cover rounded-4xl  "

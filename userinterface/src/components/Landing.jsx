@@ -49,7 +49,7 @@ const Landing = () => {
       <div className="relative h-[80vh] w-[97vw] flex items-center justify-center mt-4 bg-gradient-to-b from-blue-200 to-blue-500 rounded-4xl m-2">
         <Image
           src="/homePageImage.png"
-          alt="LuckyChain Background"
+          alt="RaffleRun Background"
           sizes="100vw"
           fill
           className="object-cover rounded-4xl  "
@@ -132,7 +132,7 @@ const Landing = () => {
       <div className='my-20 flex flex-col items-center gap-4 relative overflow-hidden'>
         <Image
           src="/backgroundEllipse.svg"
-          alt="LuckyChain Background"
+          alt="RaffleRun Background"
           sizes="10vw"
           fill
           className="object-center rounded-2xl "

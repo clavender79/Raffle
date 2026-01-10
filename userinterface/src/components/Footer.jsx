@@ -8,7 +8,7 @@ const Footer = () => {
       <div className='flex items-center justify-center gap-2 mb-4'>
 
       <Image src='Logo.svg' alt='logo' width={30} height={30} ></Image>
-      <p className="text-md font-semibold"> LuckyChain</p>
+      <p className="text-md font-semibold"> RaffleRun</p>
       </div>
       <p className="text-sm mb-4 text-[#FFFFFFCC]">
         Where transparency meets opportunity. Join the future of play and win with confidence.

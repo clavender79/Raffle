@@ -14,12 +14,12 @@ const NavigationBar = ({ className = "", navFirstOption, navSecondOption, navThi
                     <div className="flex items-center space-x-4">
                         <Image
                             src="/Logo.svg"
-                            alt="LuckyChain Logo"
+                            alt="RaffleRun Logo"
                             width={30}
                             height={30}
                             className="rounded-full"
                         />
-                        <span className="text-xl font-bold">LuckyChain</span>
+                        <span className="text-xl font-bold">RaffleRun</span>
                     </div>
                 </Link>
 

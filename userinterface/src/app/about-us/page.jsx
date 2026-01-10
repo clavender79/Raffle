@@ -8,9 +8,9 @@ export default function AboutUsPage() {
     <main className="max-w-6xl mx-auto p-8">
       <section className="grid md:grid-cols-2 gap-8 items-center">
         <div>
-          <h1 className="text-4xl font-bold mb-4">About LuckyChain</h1>
+          <h1 className="text-4xl font-bold mb-4">About RaffleRun</h1>
           <p className="text-gray-300 mb-4">
-            LuckyChain is a production-minded Web3 project that showcases end-to-end
+            RaffleRun is a production-minded Web3 project that showcases end-to-end
             dApp development: audited-like Solidity contracts (Foundry), deterministic tests,
             Chainlink VRF for verifiable randomness, and a modern frontend backed by Supabase for fast queries.
           </p>
@@ -41,7 +41,7 @@ export default function AboutUsPage() {
         </div>
 
         <div className="rounded-xl overflow-hidden shadow-lg">
-          <Image src="/lotteryPanelImage.jpg" alt="Admin dashboard" width={900} height={540} className="object-cover rounded-xl" priority />
+          <Image src="/appPhotos/lotteryHomePage.png" alt="Admin dashboard" width={900} height={840} className="object-cover rounded-xl" priority />
         </div>
       </section>
 
