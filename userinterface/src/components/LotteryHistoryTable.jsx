@@ -9,7 +9,7 @@ const LotteryHistoryTable = ({ data = [] }) => {
 
   const tableData = data.length > 0 ? data : defaultData;
 
-  console.log("Table Data: ", tableData);
+
 
   return (
     <div className="relative bg-[#1A1A1AB2] bg-opacity-80 rounded-lg p-4 mt-4 w-3.5/5 mx-auto shadow-lg backdrop-blur-sm">

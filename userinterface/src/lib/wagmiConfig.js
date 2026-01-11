@@ -7,11 +7,11 @@ import { anvil } from './chains'; // import your custom chain
 
 export const wagmiConfig = createConfig({
   autoConnect: true,
-  chains: [mainnet, sepolia, anvil],  // ✅ Add anvil here
+  chains: [mainnet, sepolia, anvil],  
   transports: {
     [mainnet.id]: http(),
-    [sepolia.id]: http('https://tame-icy-feather.ethereum-sepolia.quiknode.pro/be4d0530d0a634b0a9659b2accb1c7058ff75c55/'),
-    [anvil.id]: http('http://localhost:8545'),  // ✅ Transport for anvil
+    [sepolia.id]: http(process.env.SEPOLIA_RPC_URL),
+    [anvil.id]: http(process.env.ANVIL_RPC_URL),  
   },
   connectors: [
     injected({ shimDisconnect: true }),

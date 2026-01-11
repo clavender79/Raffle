@@ -8,7 +8,7 @@ Full‑stack raffle platform where admins create multiple on‑chain raffles and
 ## Screenshots
 
 ![Landing page](userinterface/public/appPhotos/lotteryHomePage.png)
-![Admin dashboard](userinterface/public/appPhotos/adminPanel.ppg)
+![Admin dashboard](userinterface/public/appPhotos/adminPanel.png)
 
 ## What this project demonstrates
 
